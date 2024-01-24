@@ -1,0 +1,23 @@
+stages: # List of stages for jobs, and their order of execution
+  - build
+
+build-image:
+  stage: build
+  tags:
+    - docker
+  services:
+   - name: docker:dind
+     command: ["--insecure-registry=$DOCKER_REGISTRY"]
+
+  variables:
+    # Use the overlayfs driver for improved performance.
+    DOCKER_DRIVER: overlay2
+    # Disable TLS since we're running inside local network.
+    DOCKER_TLS_CERTDIR: ""
+
+  before_script:
+    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" $DOCKER_REGISTRY
+  script:
+    - sed -i 's/<branch>/dev/g' Dockerfile
+    - docker build -t $DOCKER_REGISTRY/$DOCKER_REGISTRY_PROJECT/$P_SERVICE_NAME:development -f Dockerfile .
+    - docker push $DOCKER_REGISTRY/$DOCKER_REGISTRY_PROJECT/$P_SERVICE_NAME:development

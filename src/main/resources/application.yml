@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: ${APP_NAME_API_GATEWAY:api-gateway}
+  cloud:
+    gateway:
+      routes:
+        - id: authectication-server
+          uri: lb://authectication-server
+          predicates:
+            - Path=/api/v1/switcher/auth/**
+          filters:
+            - AuthFilter
+
+        - id: access-management
+          uri: lb://access-management
+          predicates:
+            - Path=/api/access-service/**
+          filters:
+            - AuthFilter
+app:
+  jwt:
+    # Signing key for HS512 algorithm
+    secret: EFE97BCAB41D5933E6FCD19A99F97863E3126DEDEB2695DA369514E32D
+    expiration:
+      milisecons: 10800000 # 3 Jam
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+springdoc:
+  swagger-ui:
+    path: test
+
+eureka:
+  client:
+    eureka-server-port: ${PORT_DISCOVERY_SERVICE:8761}
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: https://https://ps-service-registry-production.up.railway.app/eureka/
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+
+server:
+  port: ${PORT_API_GATEWAY:8760}
+
+ribbon:
+  ReadTimeout: 600000
+  connection-timeout: 30000
+  eureka:
+    enabled: true
+
+access:
+  allow:
+    origin: "*"
